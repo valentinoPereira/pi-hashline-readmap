@@ -150,15 +150,23 @@ Advanced behavior and integration contracts are documented in the references bel
 
 ```bash
 npm install
-npm test
+npm run build   # bundle the shippable dist/index.js entry
+npm test        # builds dist/ first (pretest)
 npm run typecheck
 npm pack --dry-run
 ```
 
+Pi loads the bundled `dist/index.js` entry declared in `package.json`
+(`pi.extensions`). The bundle exists because Pi loads TypeScript extensions
+through jiti, which resolves every module of a TS import graph file-by-file at
+startup — several seconds on Windows. `npm test`, `npm pack`, and `npm publish`
+build `dist/` automatically (`pretest`/`prepare`); `index.ts` remains the
+TypeScript source entry and a fallback when `dist/` has not been built.
+
 Project layout:
 
 ```text
-index.ts                  # extension entry point
+index.ts                  # extension entry point (TypeScript sources)
 src/
   read.ts                 # hashlined reads and maps
   edit.ts                 # anchored edits
@@ -168,7 +176,10 @@ src/
   ls.ts / find.ts / nu.ts # file exploration
   readmap/                # structural mapping and symbol lookup
   rtk/                    # Bash output compression
+  package-root.ts         # package-root asset paths (works in src/ and dist/)
+dist/                     # built shippable entry (npm run build; loaded by Pi)
 prompts/                  # detailed tool references
+scripts/                  # mapper helper scripts and the build script
 docs/                     # advanced user and integration references
 tests/                    # Vitest suite
 ```

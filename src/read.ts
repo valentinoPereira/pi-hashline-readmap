@@ -28,7 +28,7 @@ import {
 } from "./normalize-tool-params.js";
 
 const READ_PROMPT_METADATA = defineToolPromptMetadata({
-	promptUrl: new URL("../prompts/read.md", import.meta.url),
+	promptFile: "prompts/read.md",
 	promptSnippet: "Read text files or images; text reads include hashline anchors and optional maps/symbol lookup",
 	promptGuidelines: [
 		"Use read instead of bash cat/head/tail/sed for file inspection.",

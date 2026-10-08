@@ -13,7 +13,7 @@ const MAX_BYTES = 50 * 1024; // 50 KB
 const DEFAULT_LIMIT = 500;
 
 const LS_PROMPT_METADATA = defineToolPromptMetadata({
-  promptUrl: new URL("../prompts/ls.md", import.meta.url),
+  promptFile: "prompts/ls.md",
   promptSnippet: "List one directory with directories first and dotfiles included",
   promptGuidelines: [
     "Use ls to inspect one directory; use find for recursive discovery.",

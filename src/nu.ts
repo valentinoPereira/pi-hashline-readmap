@@ -286,7 +286,7 @@ export const NU_GUIDELINES = [
 ];
 
 const NU_PROMPT_METADATA = defineToolPromptMetadata({
-  promptUrl: new URL("../prompts/nu.md", import.meta.url),
+  promptFile: "prompts/nu.md",
   promptSnippet: NU_SNIPPET,
   promptGuidelines: NU_GUIDELINES,
 });

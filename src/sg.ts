@@ -95,7 +95,7 @@ export async function findEnclosingSgSymbols(absPath: string, ranges: SgRange[])
 }
 
 const SG_PROMPT_METADATA = defineToolPromptMetadata({
-  promptUrl: new URL("../prompts/sg.md", import.meta.url),
+  promptFile: "prompts/sg.md",
   promptSnippet: "Search code structurally with ast-grep and return edit-ready anchors",
   promptGuidelines: [
     "Use ast_search when text search is too broad or brittle and the query depends on code shape.",

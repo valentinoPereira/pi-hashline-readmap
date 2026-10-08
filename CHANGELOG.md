@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Pi startup with this extension installed is no longer multi-second: the shipped entry is now a single bundled `dist/index.js` built by `npm run build` (`pretest`/`prepare` run it automatically), instead of Pi's jiti loader resolving the 106-module TypeScript graph file-by-file at startup (4.6s module import measured on Windows, now ~0.1s). The bundle keeps `@earendil-works/*` and `typebox` as external bare specifiers and `dist/` is typed CommonJS on purpose, so jiti's transform path routes those host-provided peers through Pi's resolver alias map exactly like before. Runtime assets (`prompts/`, `scripts/`) now resolve from the package root via `src/package-root.ts`, which works from both the `src/` and `dist/` layouts.
+
 ## [0.15.0] - 2026-10-02
 
 ### Added

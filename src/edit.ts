@@ -145,7 +145,7 @@ const hashlineEditSchema = withLegacyObjectOrder(Type.Object(
 type HashlineParams = Static<typeof hashlineEditSchema>;
 
 const EDIT_PROMPT_METADATA = defineToolPromptMetadata({
-	promptUrl: new URL("../prompts/edit.md", import.meta.url),
+	promptFile: "prompts/edit.md",
 	promptSnippet: "Edit files using hash-verified anchors from read/grep/ast_search/write",
 	promptGuidelines: [
 		"Use edit for changes to existing files; read or search first and copy fresh LINE:HASH anchors.",

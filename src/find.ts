@@ -21,7 +21,7 @@ import {
 const MAX_BYTES = 50 * 1024; // 50 KB
 const DEFAULT_LIMIT = 1000;
 const FIND_PROMPT_METADATA = defineToolPromptMetadata({
-  promptUrl: new URL("../prompts/find.md", import.meta.url),
+  promptFile: "prompts/find.md",
   promptSnippet: "Find files recursively by name, respecting gitignore",
   promptGuidelines: [
     "Use find for recursive file-name discovery; use ls for one directory.",

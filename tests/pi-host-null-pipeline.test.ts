@@ -84,6 +84,10 @@ const agentDir = join(root, "agent");
 mkdirSync(cwd);
 mkdirSync(agentDir);
 try {
+  // Discovery resolves package.json's pi.extensions ("./dist/index.js") and
+  // silently falls back to index.ts when it is missing, which would quietly
+  // exercise the wrong entry: the shipped artifact is the bundled dist build.
+  assert.ok(existsSync(join(process.cwd(), "dist", "index.js")), "dist/index.js must exist (npm test builds it first)");
   const loaded = await discoverAndLoadExtensions([process.cwd()], cwd, agentDir);
   assert.deepEqual(loaded.errors, []);
   assert.equal(loaded.extensions.length, 1);

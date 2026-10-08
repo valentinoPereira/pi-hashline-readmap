@@ -1,11 +1,19 @@
 import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, join, sep } from "node:path";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const execFileAsync = promisify(execFile);
+
+// Spawn npm through its JS CLI entry: on Windows, spawning the npm.cmd shim
+// without a shell is blocked (ENOENT). Under `npm test` / `npx vitest` the
+// npm_execpath env var points at npm-cli.js.
+const npmExecPath = process.env.npm_execpath;
+const npmCommand = npmExecPath?.endsWith(".js")
+  ? { command: process.execPath, prefixArgs: [npmExecPath] }
+  : { command: "npm", prefixArgs: [] as string[] };
 
 interface PackFile {
   path: string;
@@ -35,8 +43,10 @@ describe("published mapper scripts", () => {
     const root = await mkdtemp(join(tmpdir(), "packed-mapper-scripts-"));
     try {
       const { stdout } = await execFileAsync(
-        "npm",
-        ["pack", "--json", "--pack-destination", root],
+        npmCommand.command,
+        // --ignore-scripts: `prepare` would rebuild dist/ mid-suite and race
+        // with test files that read it (npm test builds dist via pretest).
+        [...npmCommand.prefixArgs, "pack", "--json", "--ignore-scripts", "--pack-destination", root],
         { cwd: process.cwd(), maxBuffer: 10 * 1024 * 1024 },
       );
       const packOutput = JSON.parse(stdout) as PackResult[] | Record<string, PackResult>;
@@ -47,6 +57,9 @@ describe("published mapper scripts", () => {
         "scripts/gdscript_outline.py",
         "scripts/python_outline.py",
         "scripts/go_outline.go",
+        "dist/index.js",
+        "dist/index.js.map",
+        "dist/package.json",
       ]));
       expect(paths).not.toContain("scripts/go_outline");
 
@@ -64,15 +77,10 @@ describe("published mapper scripts", () => {
         ...actualNodeUrl,
         fileURLToPath(url: string | URL): string {
           const actualPath = actualNodeUrl.fileURLToPath(url);
-          const mapperSuffix = `${sep}src${sep}readmap${sep}mappers${sep}`;
-          if (!actualPath.includes(mapperSuffix)) return actualPath;
-          const name = basename(actualPath);
-          if (name === "python.ts" || name === "python.js") {
-            return join(packageRoot, "src/readmap/mappers/python.ts");
-          }
-          if (name === "go.ts" || name === "go.js") {
-            return join(packageRoot, "src/readmap/mappers/go.ts");
-          }
+          // Mapper helper scripts resolve via src/package-root.ts. Redirect the
+          // package root to the extracted tarball so the packed scripts — not
+          // the dev checkout's — are the ones exercised.
+          if (actualPath.replace(/[/\\]+$/, "") === process.cwd()) return packageRoot;
           return actualPath;
         },
       }));
