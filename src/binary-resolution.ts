@@ -1,4 +1,4 @@
-import { existsSync as defaultExistsSync, readFileSync } from "node:fs";
+import { closeSync, existsSync as defaultExistsSync, openSync, readFileSync, readSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 
@@ -39,8 +39,37 @@ export interface ExecutableCommand {
   argsPrefix: string[];
 }
 
+const WINDOWS_NATIVE_SUFFIX = /\.(exe|cmd|bat|ps1)$/i;
+
+function readHead(binaryPath: string, bytes: number): string | undefined {
+  let fd: number | undefined;
+  try {
+    fd = openSync(binaryPath, "r");
+    const buffer = Buffer.alloc(bytes);
+    const read = readSync(fd, buffer, 0, bytes, 0);
+    return buffer.toString("utf8", 0, read);
+  } catch {
+    return undefined;
+  } finally {
+    if (fd !== undefined) {
+      try {
+        closeSync(fd);
+      } catch {
+        // Ignore close failures; the head read already decided.
+      }
+    }
+  }
+}
+
+function isNodeScript(binaryPath: string): boolean {
+  if (/\.js$/i.test(binaryPath)) return true;
+  if (WINDOWS_NATIVE_SUFFIX.test(binaryPath)) return false;
+  const head = readHead(binaryPath, 256);
+  return head !== undefined && /^#![^\r\n]*\bnode\b/.test(head);
+}
+
 export function executableCommand(binaryPath: string, platform: NodeJS.Platform = process.platform): ExecutableCommand {
-  if (platform === "win32" && /\.js$/i.test(binaryPath)) {
+  if (platform === "win32" && isNodeScript(binaryPath)) {
     return { command: process.execPath, argsPrefix: [binaryPath] };
   }
   return { command: binaryPath, argsPrefix: [] };

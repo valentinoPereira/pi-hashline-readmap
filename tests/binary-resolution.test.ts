@@ -1,3 +1,6 @@
+import { rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { executableCommand, resolveBundledBin } from "../src/binary-resolution.js";
 
@@ -41,6 +44,34 @@ describe("resolveBundledBin", () => {
   it("leaves native executables and non-Windows scripts as direct commands", () => {
     expect(executableCommand("/repo/node_modules/@ast-grep/cli/sg.exe", "win32")).toEqual({ command: "/repo/node_modules/@ast-grep/cli/sg.exe", argsPrefix: [] });
     expect(executableCommand("/repo/node_modules/nushell/lib/index.js", "darwin")).toEqual({ command: "/repo/node_modules/nushell/lib/index.js", argsPrefix: [] });
+  });
+  it("runs Windows extensionless node-shebang bins through process.execPath", () => {
+    const fixture = join(tmpdir(), `hlr-node-shebang-${process.pid}-${Date.now()}`);
+    writeFileSync(fixture, "#!/usr/bin/env node\nrequire(\"./ast-grep\");\n");
+    try {
+      const command = executableCommand(fixture, "win32");
+      expect(command.command).toBe(process.execPath);
+      expect(command.argsPrefix).toEqual([fixture]);
+    } finally {
+      rmSync(fixture, { force: true });
+    }
+  });
+
+  it("leaves Windows extensionless non-node files as direct commands", () => {
+    const fixture = join(tmpdir(), `hlr-plain-script-${process.pid}-${Date.now()}`);
+    writeFileSync(fixture, "#!/bin/sh\necho hi\n");
+    try {
+      expect(executableCommand(fixture, "win32")).toEqual({ command: fixture, argsPrefix: [] });
+    } finally {
+      rmSync(fixture, { force: true });
+    }
+  });
+
+  it("leaves Windows extensionless missing paths as direct commands", () => {
+    expect(executableCommand("/repo/node_modules/@ast-grep/cli/does-not-exist", "win32")).toEqual({
+      command: "/repo/node_modules/@ast-grep/cli/does-not-exist",
+      argsPrefix: [],
+    });
   });
   it("returns an existing bin path from an npm package.json bin map before falling back to PATH", () => {
     const resolved = resolveBundledBin("@ast-grep/cli", "sg", "sg", {
