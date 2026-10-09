@@ -8,7 +8,7 @@ const root = resolve(__dirname, "..");
 describe("public API surface", () => {
   it("exports only the extension factory; the PTC policy is gone (codemode uses tool annotations)", async () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-    expect(pkg.exports).toEqual({ ".": "./index.ts" });
+    expect(pkg.exports).toEqual({ ".": "./dist/index.js" });
     expect(pkg.dependencies?.["pi-prompt-assembler"]).toBeUndefined();
     expect(pkg.peerDependencies?.["pi-prompt-assembler"]).toBeUndefined();
     const mod = await import(pathToFileURL(resolve(root, "index.ts")).href);

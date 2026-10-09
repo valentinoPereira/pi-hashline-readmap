@@ -27,7 +27,7 @@ import {
 } from "./normalize-tool-params.js";
 
 const GREP_PROMPT_METADATA = defineToolPromptMetadata({
-	promptUrl: new URL("../prompts/grep.md", import.meta.url),
+	promptFile: "prompts/grep.md",
 	promptSnippet: "Search file contents and return edit-ready hashline anchors",
 	promptGuidelines: [
 		"Use grep for text search across files instead of bash grep or rg.",

@@ -68,7 +68,7 @@ function pendingWritePreviewParts(summary: string, preview: PendingDiffPreviewRe
 const MAX_LINES = 2000;
 const MAX_BYTES = 50 * 1024;
 const WRITE_PROMPT_METADATA = defineToolPromptMetadata({
-  promptUrl: new URL("../prompts/write.md", import.meta.url),
+  promptFile: "prompts/write.md",
   promptSnippet: "Create or overwrite a complete file and return edit anchors",
   promptGuidelines: [
     "Use write to create new files or intentionally replace whole files.",

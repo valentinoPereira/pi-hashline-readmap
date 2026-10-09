@@ -1,5 +1,6 @@
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, formatSize } from "@earendil-works/pi-coding-agent";
 import { readFileSync } from "node:fs";
+import { PACKAGE_ROOT_URL } from "./package-root.js";
 
 
 const COMPACT_DESCRIPTIONS: Record<string, string> = {
@@ -63,17 +64,18 @@ export function firstPromptParagraph(prompt: string): string {
 }
 
 
-function promptFileName(promptUrl: URL): string {
-  return promptUrl.pathname.split("/").pop() ?? "";
+function promptFileName(promptFile: string): string {
+  return promptFile.split("/").pop() ?? "";
 }
 
 export function defineToolPromptMetadata(options: {
-  promptUrl: URL;
+  /** Prompt path relative to the package root, e.g. "prompts/read.md". */
+  promptFile: string;
   promptSnippet: string;
   promptGuidelines: string[];
 }): ToolPromptMetadata {
-  const prompt = loadPrompt(options.promptUrl);
-  const fileName = promptFileName(options.promptUrl);
+  const prompt = loadPrompt(new URL(options.promptFile, PACKAGE_ROOT_URL));
+  const fileName = promptFileName(options.promptFile);
   const compactDescription = COMPACT_DESCRIPTIONS[fileName];
   return {
     description: compactDescription ?? firstPromptParagraph(prompt),
